@@ -5,6 +5,8 @@ import instruction.InstructionType;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 import register.Register;
@@ -17,9 +19,13 @@ import register.Register;
 public class Fetcher extends SimUnit {
 	private int instructionNdx;
 	private ArrayList<Instruction> parsedInstructions;
+	
+	public ArrayList<Instruction> instructionRegister;
 
 	public Fetcher(AppContext appContext, String filename) {
 		super(appContext);
+		
+		this.instructionRegister = new ArrayList<Instruction>();
 		
 		instructionNdx = 0;
 		try {
@@ -50,10 +56,8 @@ public class Fetcher extends SimUnit {
 		int maxInstructionNdx = instructionNdx + 4;
 		while (instructionNdx < Math.min(parsedInstructions.size(),  maxInstructionNdx)) {
 			Instruction instruction = parsedInstructions.get(instructionNdx);
-			if (appContext.decoder.canAdd()) {
-				instructions_n.add(instruction);
-				instructionNdx++;
-			}
+			instructions_n.add(instruction);
+			instructionNdx++;
 		}
 	}
 	
@@ -64,10 +68,12 @@ public class Fetcher extends SimUnit {
 	public void edge() {
 		super.edge();
 		
-		for (int i = 0; i < instructions_n.size(); i++) {
-			Instruction instruction = instructions_n.get(i);
-			appContext.decoder.add(instruction);
+		Iterator<Instruction> iterator = instructions_n.iterator();
+		while (iterator.hasNext()) {
+			Instruction instruction = iterator.next();
+			instructionRegister.add(instruction);
 		}
+		
 		instructions_n.clear();
 	}
 	

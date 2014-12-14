@@ -12,6 +12,7 @@ import register.Register;
 import simulator.AppContext;
 
 public class AddressQueue extends InstructionQueue {
+	private ArrayList<Instruction> queuedInstructions;
 	private ArrayList<Register> loadDependencies;
 	private ArrayList<String> storeDependencies;
 	
@@ -20,11 +21,16 @@ public class AddressQueue extends InstructionQueue {
 	public AddressQueue(AppContext appContext) {
 		super(appContext);
 		
+		this.queuedInstructions = new ArrayList<Instruction>();
 		this.loadDependencies = new ArrayList<Register>();
 		this.storeDependencies = new ArrayList<String>();
 		this.loadStoreUnit = new LoadStoreUnit(appContext);
 	}
 	
+	@Override
+	public boolean canAdd() {
+		return this.queuedInstructions.size() < SIZE;
+	}
 	
 	@Override
 	public void calc() {
@@ -66,14 +72,11 @@ public class AddressQueue extends InstructionQueue {
 			
 			if (this.loadStoreUnit.canIssue()) {
 				this.loadStoreUnit.issue(instruction);
+				iterator.remove();
 			}
 		}
 		
 		this.loadStoreUnit.edge();
-	}
-	
-	public void dequeue(Instruction instruction) {
-		this.instructions_n.remove(instruction);
 	}
 	
 	public void addLoadDependency(Register register) {

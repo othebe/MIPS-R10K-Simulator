@@ -48,6 +48,7 @@ public class FloatingQueue extends InstructionQueue {
 				if (operandsAvailable(instruction)) {
 					alu1.issue(instruction);
 					iterator.remove();
+					dequeue(instruction);
 					break;
 				}
 			}
@@ -65,6 +66,7 @@ public class FloatingQueue extends InstructionQueue {
 				if (operandsAvailable(instruction)) {
 					alu2.issue(instruction);
 					iterator.remove();
+					dequeue(instruction);
 					break;
 				}
 			}

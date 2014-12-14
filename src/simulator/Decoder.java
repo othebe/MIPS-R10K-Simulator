@@ -24,13 +24,16 @@ public class Decoder extends SimUnit {
 	/**
 	 * Determine if instructions can be added to the queue.
 	 */
-	public boolean canAdd() {
+	private boolean canAdd() {
 		// Active list is not full.
 		boolean checkActiveList = appContext.activeList.canAdd();
 		
 		// Queues are not full.
+		boolean checkAddressQueue = appContext.addressQueue.canAdd();
+		boolean checkFloatingQueue = appContext.floatingQueue.canAdd();
+		boolean checkIntegerQueue = appContext.integerQueue.canAdd();
 		
-		return checkActiveList;
+		return checkActiveList && checkAddressQueue && checkFloatingQueue && checkIntegerQueue;
 	}
 	
 	
@@ -55,30 +58,10 @@ public class Decoder extends SimUnit {
 	public void calc() {
 		super.calc();
 		
-		Iterator<Instruction> iterator = instructions_r.iterator();
-		while (iterator.hasNext()) {
-			Instruction instruction = iterator.next();
-			
-			// Rename operand registers.
-			instruction.rs = renameOperandRegister(instruction.rs);
-			instruction.rt = renameOperandRegister(instruction.rt);
-			
-			// Rename destination register.
-			if (instruction.rd != null && appContext.freeList.hasFreeRegister()) {
-				Register reserved = appContext.freeList.removeRegister();
-				if (reserved != null) {
-					reserved.setBypass(false);
-					appContext.activeList.addMapping(instruction.rd, reserved);
-					instruction.rd = reserved;
-					instruction.renamed = true;
-					
-					InstructionQueue instructionQueue = getInstructionQueue(instruction.instructionType);
-					if (instructionQueue != null) {
-						instructions_n.add(instruction);
-						iterator.remove();
-					}
-				}
-			}
+		int maxReadableInstructions = Math.min(4, appContext.fetcher.instructionRegister.size());
+		for (int i = 0; i < maxReadableInstructions; i++) {
+			Instruction instruction = appContext.fetcher.instructionRegister.get(i);
+			instructions_r.add(instruction);
 		}
 	}
 	
@@ -87,15 +70,44 @@ public class Decoder extends SimUnit {
 	public void edge() {
 		super.edge();
 		
-		Iterator<Instruction> iterator = instructions_n.iterator();
+		Iterator<Instruction> iterator = instructions_r.iterator();
 		while (iterator.hasNext()) {
 			Instruction instruction = iterator.next();
-			InstructionQueue instructionQueue = getInstructionQueue(instruction.instructionType);
-			if (instructionQueue.canAdd()) {
-				instructionQueue.enqueue(instruction);
-				iterator.remove();
+			
+			if (canAdd()) {
+				appContext.fetcher.instructionRegister.remove(instruction);
+				
+				// If there are no instructions, break the loop.
+				if (instruction == null) break;
+				
+				// Rename operand registers.
+				instruction.rs = renameOperandRegister(instruction.rs);
+				instruction.rt = renameOperandRegister(instruction.rt);
+				
+				// Rename destination register.
+				if (instruction.rd != null && appContext.freeList.hasFreeRegister()) {
+					Register reserved = appContext.freeList.removeRegister();
+					if (reserved != null) {
+						reserved.setBypass(false);
+						appContext.activeList.addMapping(instruction.rd, reserved);
+						instruction.rd = reserved;
+						instruction.renamed = true;
+						appContext.activeList.enqueue(instruction);
+						
+						InstructionQueue instructionQueue = getInstructionQueue(instruction.instructionType);
+						if (instructionQueue != null) {
+							instructionQueue.enqueue(instruction);
+							instructions_n.add(instruction);
+						}
+					}
+				}
 			}
 		}
+		
+		super.edge();
+		
+		instructions_r.clear();
+		instructions_n.clear();
 	}
 	
 	// Rename an operand register if mapping exists.

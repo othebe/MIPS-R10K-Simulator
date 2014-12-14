@@ -74,8 +74,7 @@ public class Graduator extends SimUnit {
 			}
 			
 			// Remove from active list.
-			Register logical = appContext.activeList.getOriginal(instruction.rd);
-			appContext.activeList.removeMapping(logical);
+			appContext.activeList.dequeue(instruction);
 			
 			System.out.println(instruction.seqNum);
 		}

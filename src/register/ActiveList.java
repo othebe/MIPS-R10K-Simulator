@@ -1,45 +1,61 @@
 package register;
 
+import instruction.Instruction;
+
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 public class ActiveList {
 	private static final int SIZE = 32;
 	
+	// Map physical register to logical. This will be unique since a physical register can only map to one logical register.
 	private HashMap<Register, Register> registerMap;
+	
+	// Ordered list of instructions.
+	private LinkedList<Instruction> running;
 	
 	public ActiveList() {
 		this.registerMap = new HashMap<Register, Register>();
+		this.running = new LinkedList<Instruction>();
 	}
 	
 	public boolean canAdd() {
-		return (this.registerMap.size() < SIZE);
+		return this.running.size() < SIZE;
+	}
+	
+	// Add a renamed instruction to the list of running instructions.
+	public void enqueue(Instruction instruction) {
+		running.add(instruction);
+	}
+	
+	public void dequeue(Instruction instruction) {
+		running.remove(instruction);
+		removeMapping(instruction.rd);
 	}
 	
 	public void addMapping(Register logical, Register physical) {
-		registerMap.put(logical, physical);
+		registerMap.put(physical, logical);
 	}
 	
-	public void removeMapping(Register logical) {
-		registerMap.remove(logical);
+	public void removeMapping(Register physical) {
+		registerMap.remove(physical);
 	}
 	
 	public Register getRenamed(Register logical) {
-		return registerMap.get(logical);
-	}
-	
-	public Register getOriginal(Register physical) {
-		Register logical = null;
-		
-		Iterator<Register> iterator = registerMap.keySet().iterator();
+		Iterator<Instruction> iterator = running.descendingIterator();
 		while (iterator.hasNext()) {
-			Register register = iterator.next();
-			if (registerMap.get(register) == physical) {
-				logical = register;
-				break;
+			Instruction instruction = iterator.next();
+			Register physical = instruction.rd;
+			if (registerMap.get(physical) == logical) {
+				return physical;
 			}
 		}
 		
-		return logical;
+		return null;
+	}
+	
+	public Register getOriginal(Register physical) {
+		return registerMap.get(physical);
 	}
 }

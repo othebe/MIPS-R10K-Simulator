@@ -15,8 +15,8 @@ public class IntegerQueue extends InstructionQueue {
 	public IntegerQueue(AppContext appContext) {
 		super(appContext);
 		
-		this.alu1 = new AluUnit(appContext, /** pipelines */ 2, /** allowBypass */ false);
-		this.alu2 = new AluUnit(appContext, /** pipelines */ 2, /** allowBypass */ false);
+		this.alu1 = new AluUnit(appContext, /** pipelines */ 1, /** allowBypass */ false);
+		this.alu2 = new AluUnit(appContext, /** pipelines */ 1, /** allowBypass */ false);
 	}
 	
 	@Override
@@ -61,6 +61,7 @@ public class IntegerQueue extends InstructionQueue {
 			if (issuable != null) {
 				alu1.issue(issuable);
 				instructions_n.remove(issuable);
+				dequeue(issuable);
 			}
 		}
 		
@@ -88,6 +89,7 @@ public class IntegerQueue extends InstructionQueue {
 			if (issuable != null) {
 				alu2.issue(issuable);
 				instructions_n.remove(issuable);
+				dequeue(issuable);
 			}
 		}
 		
