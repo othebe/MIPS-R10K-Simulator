@@ -15,7 +15,7 @@ import simulator.SimUnit;
 public abstract class InstructionQueue extends SimUnit{
 	protected final static int SIZE = 16;
 	
-	private ArrayList<Instruction> queuedInstructions;
+	protected ArrayList<Instruction> queuedInstructions;
 	
 	public InstructionQueue(AppContext appContext) {
 		super(appContext);

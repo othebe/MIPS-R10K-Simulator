@@ -15,17 +15,17 @@ public class RegisterList {
 	private HashMap<Integer, Register> physicalRegisters;
 	
 	public RegisterList(AppContext appContext) {
-		this.immRegister = new Register(0);
+		this.immRegister = new Register(appContext, 0);
 				
 		this.logicalRegisters = new HashMap<Integer, Register>();
 		this.physicalRegisters = new HashMap<Integer, Register>();
 		
 		for (int i = 0; i < NUM_LOGICAL_REGISTERS; i++) {
-			this.logicalRegisters.put(i, new Register(i));
+			this.logicalRegisters.put(i, new Register(appContext, i));
 		}
 		
 		for (int i = 1; i <= NUM_PHYSICAL_REGISTERS; i++) {
-			this.physicalRegisters.put(i, new Register(i));
+			this.physicalRegisters.put(i, new Register(appContext, i));
 		}
 	}
 	

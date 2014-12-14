@@ -30,6 +30,8 @@ public class AluUnit extends ExecutionUnit {
 				instruction.rd.setBypass(true);
 			}
 		}
+		
+		instructions_r.clear();
 	}
 	
 	@Override

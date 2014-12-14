@@ -1,5 +1,7 @@
 package register;
 
+import simulator.AppContext;
+
 public class Register {
 	// Identifier for the register. May need special handling for Hi/Lo.
 	private int id;
@@ -10,7 +12,10 @@ public class Register {
 	// Determines if bypass allowed.
 	private boolean allowBypass;
 	
-	public Register(int id) {
+	private AppContext appContext;
+	
+	public Register(AppContext appContext, int id) {
+		this.appContext = appContext;
 		this.id = id;
 		this.isBusy = false;
 		this.allowBypass = false;
@@ -18,7 +23,9 @@ public class Register {
 	
 	// Set busy status.
 	public void setBusy(boolean isBusy) {
-		this.isBusy = isBusy;
+		if (this != appContext.registerList.getImmRegister()) {
+			this.isBusy = isBusy;
+		}
 	}
 	
 	// Check if register is busy.

@@ -2,6 +2,7 @@ package simulator;
 
 import instruction.Instruction;
 
+import java.net.IDN;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,14 +15,14 @@ public class TimeLogger {
 	
 	private int cycle;
 	private LinkedList<Instruction> instructions;
-	private HashMap<Instruction, ArrayList<SimUnit>> timeLine;
+	private HashMap<Instruction, ArrayList<String>> timeLine;
 	
 	public TimeLogger(AppContext appContext) {
 		this.appContext = appContext;
 		
 		this.cycle = 0;
 		this.instructions = new LinkedList<Instruction>();
-		this.timeLine = new HashMap<Instruction, ArrayList<SimUnit>>();
+		this.timeLine = new HashMap<Instruction, ArrayList<String>>();
 	}
 	
 	public void nextCycle() {
@@ -29,14 +30,15 @@ public class TimeLogger {
 	}
 	
 	public void log(Instruction instruction, SimUnit simUnit) {
-		ArrayList<SimUnit> history;
+		ArrayList<String> history;
 		
 		// Register instruction.
 		if (!timeLine.containsKey(instruction)) {
 			instructions.add(instruction);
-			history = new ArrayList<SimUnit>();
+			history = new ArrayList<String>();
 			for (int i = 1; i < cycle; i++) {
-				history.add(null);
+				// Fill in previous cycles.
+				history.add("");
 			}
 			timeLine.put(instruction, history);
 		}
@@ -45,20 +47,21 @@ public class TimeLogger {
 		
 		// Fill in stall cycles.
 		while (history.size() < cycle) {
-			history.add(null);
+			history.add("");
 		}
 		
 		// Log instruction.
 		if (!history.isEmpty() && !(simUnit instanceof ExecutionUnit)) {
 			boolean alreadyPrinted = false;
 			for (int i = 0; i < history.size(); i++) {
-				alreadyPrinted = alreadyPrinted || (history.get(i) == simUnit);
+				String identifier = simUnit.getIdentifier();
+				alreadyPrinted = alreadyPrinted || (history.get(i).compareTo(identifier) == 0);
 			}
 			if (!alreadyPrinted) {
-				history.add(simUnit);
+				history.add(simUnit.getIdentifier());
 			}
 		} else {
-			history.add(simUnit);
+			history.add(simUnit.getIdentifier());
 		}
 		timeLine.put(instruction, history);
 	}
@@ -77,16 +80,9 @@ public class TimeLogger {
 			System.out.printf("%5d", instruction.seqNum);
 			
 			// Print sequential timeline.
-			ArrayList<SimUnit> history = timeLine.get(instruction);
+			ArrayList<String> history = timeLine.get(instruction);
 			for (int i = 0; i < history.size(); i++) {
-				SimUnit simUnit = history.get(i);
-				String identifier = "";
-				
-				if (simUnit != null) {
-					identifier = simUnit.getIdentifier();
-				}
-				
-				System.out.printf("%5s", identifier);
+				System.out.printf("%5s", history.get(i));
 			}
 			System.out.println();
 		}
