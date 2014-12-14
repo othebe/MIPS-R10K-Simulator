@@ -45,7 +45,7 @@ public class FloatingQueue extends InstructionQueue {
 			while (iterator.hasNext()) {
 				Instruction instruction = iterator.next();
 				
-				if (operandsAvailable(instruction)) {
+				if (instruction.operandsAvailable()) {
 					alu1.issue(instruction);
 					iterator.remove();
 					dequeue(instruction);
@@ -63,7 +63,7 @@ public class FloatingQueue extends InstructionQueue {
 				boolean rsAvailable = !instruction.rs.isBusy() || instruction.rs.allowBypass();
 				boolean rtAvailable = !instruction.rt.isBusy() || instruction.rt.allowBypass();
 				
-				if (operandsAvailable(instruction)) {
+				if (instruction.operandsAvailable()) {
 					alu2.issue(instruction);
 					iterator.remove();
 					dequeue(instruction);
@@ -79,12 +79,5 @@ public class FloatingQueue extends InstructionQueue {
 	@Override
 	public String getIdentifier() {
 		return "I";
-	}
-	
-	private static boolean operandsAvailable(Instruction instruction) {
-		boolean rsAvailable = !instruction.rs.isBusy() || instruction.rs.allowBypass();
-		boolean rtAvailable = !instruction.rt.isBusy() || instruction.rt.allowBypass();
-		
-		return rsAvailable && rtAvailable;
 	}
 }

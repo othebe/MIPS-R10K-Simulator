@@ -22,4 +22,11 @@ public class Instruction {
 		this.extra = extra;
 		this.renamed = false;
 	}
+	
+	public boolean operandsAvailable() {
+		boolean rsAvailable = !this.rs.isBusy() || this.rs.allowBypass();
+		boolean rtAvailable = !this.rt.isBusy() || this.rt.allowBypass();
+		
+		return rsAvailable && rtAvailable;
+	}
 }

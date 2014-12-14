@@ -75,31 +75,31 @@ public class Decoder extends SimUnit {
 			Instruction instruction = iterator.next();
 			
 			if (canAdd()) {
-				appContext.fetcher.instructionRegister.remove(instruction);
-				
 				// If there are no instructions, break the loop.
 				if (instruction == null) break;
 				
-				// Rename operand registers.
-				instruction.rs = renameOperandRegister(instruction.rs);
-				instruction.rt = renameOperandRegister(instruction.rt);
-				
-				// Rename destination register.
-				if (instruction.rd != null && appContext.freeList.hasFreeRegister()) {
-					Register reserved = appContext.freeList.removeRegister();
-					if (reserved != null) {
-						reserved.setBypass(false);
+				// Rename destination register if not immediate.
+				if (instruction.rd != appContext.registerList.getImmRegister()) {
+					if (appContext.freeList.hasFreeRegister()) {
+						Register reserved = appContext.freeList.removeRegister();
 						appContext.activeList.addMapping(instruction.rd, reserved);
 						instruction.rd = reserved;
 						instruction.renamed = true;
-						appContext.activeList.enqueue(instruction);
 						
-						InstructionQueue instructionQueue = getInstructionQueue(instruction.instructionType);
-						if (instructionQueue != null) {
-							instructionQueue.enqueue(instruction);
-							instructions_n.add(instruction);
-						}
+						// Rename operand registers.
+						instruction.rs = renameOperandRegister(instruction.rs);
+						instruction.rt = renameOperandRegister(instruction.rt);
+						
+						enqueueInstruction(instruction);						
+						instructions_n.add(instruction);
 					}
+				} else {
+					// Rename operand registers.
+					instruction.rs = renameOperandRegister(instruction.rs);
+					instruction.rt = renameOperandRegister(instruction.rt);
+					
+					enqueueInstruction(instruction);
+					instructions_n.add(instruction);
 				}
 			}
 		}
@@ -120,6 +120,13 @@ public class Decoder extends SimUnit {
 		}
 		
 		return register;
+	}
+	
+	// Send instruction to queues.
+	private void enqueueInstruction(Instruction instruction) {
+		appContext.activeList.enqueue(instruction);
+		getInstructionQueue(instruction.instructionType).enqueue(instruction);
+		appContext.fetcher.instructionRegister.remove(instruction);
 	}
 	
 	// Get instruction queue for an instruction type.

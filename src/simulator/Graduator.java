@@ -76,6 +76,11 @@ public class Graduator extends SimUnit {
 			// Remove from active list.
 			appContext.activeList.dequeue(instruction);
 			
+			// Re-add to the free list.
+			if (instruction.renamed) {
+				appContext.freeList.addRegister(instruction.rd);
+			}
+			
 			System.out.println(instruction.seqNum);
 		}
 		

@@ -9,10 +9,7 @@ import java.util.LinkedList;
 
 import simulator.AppContext;
 
-public class FreeList {
-	// Number of registers available to the free list.
-	private static final int NUM_REGISTERS = 64;
-	
+public class FreeList {	
 	private AppContext appContext;
 	private LinkedList<Register> registers;
 	
@@ -33,6 +30,7 @@ public class FreeList {
 	public Register removeRegister() {
 		Register register = this.registers.pop();
 		register.setBusy(true);
+		register.setBypass(false);
 		
 		return register;
 	}

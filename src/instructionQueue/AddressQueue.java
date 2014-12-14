@@ -66,11 +66,7 @@ public class AddressQueue extends InstructionQueue {
 		Iterator<Instruction> iterator = instructions_n.iterator();
 		while (iterator.hasNext()) {
 			Instruction instruction = iterator.next();
-			if (instruction.rs.isBusy() || instruction.rt.isBusy()) {
-				continue;
-			}
-			
-			if (this.loadStoreUnit.canIssue()) {
+			if (instruction.operandsAvailable() && this.loadStoreUnit.canIssue()) {
 				this.loadStoreUnit.issue(instruction);
 				iterator.remove();
 			}
