@@ -100,36 +100,8 @@ public class AddressQueue extends InstructionQueue {
 	public void edge() {
 		super.edge();
 		
-		Iterator<Instruction> iterator = instructions_n.iterator();
-		while (iterator.hasNext()) {
-			Instruction instruction = iterator.next();
-			
-			// Attempt to compute memory address.
-			if (!completedAddressCompute.get(instruction)) {
-				if (instruction.operandsAvailable()) {
-					if (this.addressCalcUnit.canIssue()) {
-						this.addressCalcUnit.issue(instruction);
-					}
-				}
-			}
-			
-			// Attempt to access memory.
-			else if (!completedMemoryAccess.get(instruction)) {
-				// Check indetermination list.
-				if (!checkIndeterminationDependency(instruction)) {
-					continue;
-				}
-				
-				// Check dependency list.
-				if (!checkDependency(instruction)) {
-					continue;
-				}
-				
-				if (instruction.operandsAvailable() && this.loadStoreUnit.canIssue()) {
-					this.loadStoreUnit.issue(instruction);
-				}
-			}
-		}
+		// Attempt to assign instructions to execution units.
+		assignInstructionToExecutionUnit();
 		
 		instructions_n.clear();
 		
@@ -156,6 +128,9 @@ public class AddressQueue extends InstructionQueue {
 	
 	public void removeDependency(Instruction instruction) {
 		this.dependencyList.remove(instruction);
+		
+		// If a dependency is removed, attempt to move instructions in the pipeline so they are ready at the calc stage.
+		assignInstructionToExecutionUnit();
 	}
 	
 	public boolean checkDependency(Instruction instruction) {
@@ -172,4 +147,38 @@ public class AddressQueue extends InstructionQueue {
 		}
 		return true;
 	}
+	
+	private void assignInstructionToExecutionUnit() {
+		Iterator<Instruction> iterator = queuedInstructions.iterator();
+		while (iterator.hasNext()) {
+			Instruction instruction = iterator.next();
+			
+			// Attempt to compute memory address.
+			if (completedAddressCompute.containsKey(instruction) && !completedAddressCompute.get(instruction)) {
+				if (instruction.operandsAvailable()) {
+					if (this.addressCalcUnit.canIssue()) {
+						this.addressCalcUnit.issue(instruction);
+					}
+				}
+			}
+			
+			// Attempt to access memory.
+			else if (completedMemoryAccess.containsKey(instruction) && !completedMemoryAccess.get(instruction)) {
+				// Check indetermination list.
+				if (!checkIndeterminationDependency(instruction)) {
+					continue;
+				}
+				
+				// Check dependency list.
+				if (!checkDependency(instruction)) {
+					continue;
+				}
+				
+				if (instruction.operandsAvailable() && this.loadStoreUnit.canIssue()) {
+					this.loadStoreUnit.issue(instruction);
+				}
+			}
+		}
+	}
+	
 }
