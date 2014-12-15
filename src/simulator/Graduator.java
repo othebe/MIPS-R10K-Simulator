@@ -68,9 +68,14 @@ public class Graduator extends SimUnit {
 		for (int i = 0; i < instructions_n.size(); i++) {
 			Instruction instruction = instructions_n.get(i);
 			
-			// If dealing with load or stores, remove from address queue.
 			if (instruction.instructionType == InstructionType.LOAD || instruction.instructionType == InstructionType.STORE) {
+				// If dealing with load or stores, remove from address queue.
 				appContext.addressQueue.dequeue(instruction);
+				
+				// If graduating a store, remove from dependency matrix.
+				if (instruction.instructionType == InstructionType.STORE) {
+					appContext.addressQueue.removeDependency(instruction);
+				}
 			}
 			
 			// Remove from active list.

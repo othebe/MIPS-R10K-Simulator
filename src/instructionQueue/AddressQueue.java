@@ -17,8 +17,8 @@ public class AddressQueue extends InstructionQueue {
 	private HashMap<Instruction, Boolean> completedAddressCompute;
 	private HashMap<Instruction, Boolean> completedMemoryAccess;
 	
-	private ArrayList<Instruction> loadDependencies;
-	private ArrayList<String> storeDependencies;
+	private ArrayList<Instruction> inderminationList;
+	private ArrayList<Instruction> dependencyList;
 	
 	private AddressCalculationUnit addressCalcUnit;
 	private LoadStoreUnit loadStoreUnit;
@@ -29,8 +29,8 @@ public class AddressQueue extends InstructionQueue {
 		this.completedAddressCompute = new HashMap<Instruction, Boolean>();
 		this.completedMemoryAccess = new HashMap<Instruction, Boolean>();
 		
-		this.loadDependencies = new ArrayList<Instruction>();
-		this.storeDependencies = new ArrayList<String>();
+		this.inderminationList = new ArrayList<Instruction>();
+		this.dependencyList = new ArrayList<Instruction>();
 		
 		this.addressCalcUnit = new AddressCalculationUnit(appContext);
 		this.loadStoreUnit = new LoadStoreUnit(appContext);
@@ -60,11 +60,10 @@ public class AddressQueue extends InstructionQueue {
 			if (!completedMemoryAccess.containsKey(instruction)) {
 				completedMemoryAccess.put(instruction, false);
 
-				if (instruction.instructionType == InstructionType.LOAD) {
-					addLoadDependency(instruction);
-				} 
-				else if(instruction.instructionType == InstructionType.STORE) {
-					addStoreDependency(instruction.extra);
+				addIndeterminationDependency(instruction);
+
+				if(instruction.instructionType == InstructionType.STORE) {
+					addDependency(instruction);
 				}
 			}
 		}
@@ -84,12 +83,7 @@ public class AddressQueue extends InstructionQueue {
 			this.completedMemoryAccess.put(completedInstruction, true);
 			
 			// Update dependency matrix.
-			if (completedInstruction.instructionType == InstructionType.LOAD) {
-				appContext.addressQueue.removeLoadDependency(completedInstruction);
-			} 
-			else if(completedInstruction.instructionType == InstructionType.STORE) {
-				appContext.addressQueue.removeStoreDependency(completedInstruction.extra);
-			}
+			appContext.addressQueue.removeInderminationDependency(completedInstruction);
 		}
 		
 		this.instructions_r.clear();
@@ -121,13 +115,13 @@ public class AddressQueue extends InstructionQueue {
 			
 			// Attempt to access memory.
 			else if (!completedMemoryAccess.get(instruction)) {
-				// Check load dependency.
-				if (!checkLoadDependency(instruction)) {
+				// Check indetermination list.
+				if (!checkIndeterminationDependency(instruction)) {
 					continue;
 				}
 				
-				// Check store dependency.
-				if (storeDependencies.contains(instruction.extra)) {
+				// Check dependency list.
+				if (!checkDependency(instruction)) {
 					continue;
 				}
 				
@@ -135,32 +129,47 @@ public class AddressQueue extends InstructionQueue {
 					this.loadStoreUnit.issue(instruction);
 				}
 			}
-			
-			iterator.remove();
 		}
+		
+		instructions_n.clear();
 		
 		this.addressCalcUnit.edge();
 		this.loadStoreUnit.edge();
 	}
 	
-	public void addLoadDependency(Instruction instruction) {
-		this.loadDependencies.add(instruction);
+	public void addIndeterminationDependency(Instruction instruction) {
+		this.inderminationList.add(instruction);
 	}
 	
-	public void removeLoadDependency(Instruction instruction) {
-		this.loadDependencies.remove(instruction);
+	public void removeInderminationDependency(Instruction instruction) {
+		this.inderminationList.remove(instruction);
 	}
 	
-	public boolean checkLoadDependency(Instruction instruction) {
+	public boolean checkIndeterminationDependency(Instruction instruction) {
 		// Loads are only allowed if there are no prior loads waiting.
-		return loadDependencies.indexOf(instruction) == 0;
+		return inderminationList.indexOf(instruction) == 0;
 	}
 	
-	public void addStoreDependency(String address) {
-		this.storeDependencies.add(address);
+	public void addDependency(Instruction instruction) {
+		this.dependencyList.add(instruction);
 	}
 	
-	public void removeStoreDependency(String address) {
-		this.storeDependencies.remove(address);
+	public void removeDependency(Instruction instruction) {
+		this.dependencyList.remove(instruction);
+	}
+	
+	public boolean checkDependency(Instruction instruction) {
+		if (instruction.instructionType != InstructionType.LOAD) {
+			return true;
+		}
+		
+		Iterator<Instruction> iterator = dependencyList.iterator();
+		while (iterator.hasNext()) {
+			Instruction queued = iterator.next();
+			if (instruction.rs == queued.rs || instruction.rt == queued.rt) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
