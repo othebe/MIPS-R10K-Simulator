@@ -36,25 +36,6 @@ public class Fetcher extends SimUnit {
 		}
 	}
 	
-	public void resetFromInstruction(Instruction instruction) {
-		int index = parsedInstructions.indexOf(instruction);
-		if (instruction.isMispredicted()) {
-			instruction.extra = "0";
-			parsedInstructions.set(index, instruction);
-//			Instruction altered = new Instruction(
-//					instruction.seqNum,
-//					instruction.instructionType,
-//					instruction.rs,
-//					instruction.rt,
-//					instruction.rd,
-//					"0"
-//			);
-//			parsedInstructions.set(index,  altered);
-		}
-		
-		instructionNdx = index;
-	}
-	
 	public boolean hasNext() {
 		return instructionNdx < this.parsedInstructions.size();
 	}
@@ -94,6 +75,24 @@ public class Fetcher extends SimUnit {
 		}
 		
 		instructions_n.clear();
+	}
+	
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
+		// Clear newer instructions from instruction register.
+		Iterator<Instruction> iterator = instructionRegister.iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().seqNum >= instruction.seqNum) iterator.remove();
+		}
+		
+		// Reset instruction pointer.
+		int index = parsedInstructions.indexOf(instruction);
+		if (instruction.isMispredicted()) {
+			instruction.extra = "0";
+			parsedInstructions.set(index, instruction);
+		}
+		
+		instructionNdx = index;
 	}
 	
 	private ArrayList<Instruction> parse(String filename) throws FileNotFoundException {

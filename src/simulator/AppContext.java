@@ -12,7 +12,7 @@ import register.RegisterList;
  * @author Ozzy
  *
  */
-public class AppContext implements Cloneable {
+public class AppContext {
 	// Time logger.
 	public TimeLogger timeLogger;
 	
@@ -58,25 +58,5 @@ public class AppContext implements Cloneable {
 		this.decoder = new Decoder(this);
 		this.graduator = new Graduator(this);
 		this.branchHandler = new BranchHandler(this);
-	}
-	
-	public AppContext clone() {
-		AppContext cloned = null;
-		
-		try {
-			cloned = (AppContext) super.clone();
-			
-			// Rewrite AppContext for sim units.
-			
-			cloned.addressQueue = (AddressQueue) cloned.addressQueue.clone(cloned);
-			cloned.integerQueue = (IntegerQueue) cloned.integerQueue.clone(cloned);
-			cloned.floatingQueue = (FloatingQueue) cloned.floatingQueue.clone(cloned);
-			cloned.fetcher = (Fetcher) cloned.fetcher.clone(cloned);
-			cloned.decoder = (Decoder) cloned.decoder.clone(cloned);
-			cloned.branchHandler = (BranchHandler) cloned.branchHandler.clone(cloned);
-			
-		} catch (CloneNotSupportedException e) {}
-		
-		return cloned;
 	}
 }

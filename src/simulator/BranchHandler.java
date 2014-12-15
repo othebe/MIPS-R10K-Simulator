@@ -6,14 +6,14 @@ import java.util.LinkedList;
 import instruction.Instruction;
 
 public class BranchHandler extends SimUnit {
-	private LinkedList<ExecutionFrame> executionStack;
+	private LinkedList<Instruction> branchStack;
 	public boolean performRollback;
 	
 	public BranchHandler(AppContext appContext) {
 		super(appContext);
 		
 		this.performRollback = false;
-		this.executionStack = new LinkedList<ExecutionFrame>();
+		this.branchStack = new LinkedList<Instruction>();
 	}
 	
 	@Override
@@ -28,11 +28,13 @@ public class BranchHandler extends SimUnit {
 		return "R";
 	}
 	
-	public AppContext getRollback() {
+	public static void rollback(AppContext appContext) {
+		
+		
 		AppContext original = this.appContext;
 		
 		if (performRollback) {
-			ExecutionFrame executionFrame = executionStack.pop();
+			ExecutionFrame executionFrame = branchStack.pop();
 			Instruction resetInstruction = executionFrame.getResetInstruction();
 			
 			original = executionFrame.getAppContext();
@@ -50,27 +52,6 @@ public class BranchHandler extends SimUnit {
 	}
 	
 	public void addFrame(Instruction branchInstruction) {
-		executionStack.push(new ExecutionFrame(appContext, branchInstruction));
-	}
-	
-	/**
-	 * Execution frame for branch stack.
-	 */
-	private class ExecutionFrame {
-		private AppContext appContext;
-		private Instruction resetInstruction;
-		
-		public ExecutionFrame(AppContext appContext, Instruction resetInstruction) {
-			this.appContext = appContext.clone();
-			this.resetInstruction = resetInstruction;
-		}
-		
-		public AppContext getAppContext() {
-			return this.appContext;
-		}
-		
-		public Instruction getResetInstruction() {
-			return this.resetInstruction;
-		}
+		branchStack.push(branchInstruction);
 	}
 }

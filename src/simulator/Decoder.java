@@ -114,6 +114,11 @@ public class Decoder extends SimUnit {
 		instructions_n.clear();
 	}
 	
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
+		
+	}
+	
 	// Rename an operand register if mapping exists.
 	private Register renameOperandRegister(Register register) {
 		if (register != null) {

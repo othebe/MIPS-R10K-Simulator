@@ -28,11 +28,6 @@ public abstract class SimUnit implements Cloneable {
 		}
 	}
 	
-	public void clear() {
-		this.instructions_r.clear();
-		this.instructions_n.clear();
-	}
-	
 	public SimUnit clone(AppContext appContext) {
 		SimUnit cloned = null;
 		
@@ -45,6 +40,9 @@ public abstract class SimUnit implements Cloneable {
 		
 		return cloned;
 	}
+	
+	// Clears pipelines from this instruction (inclusive) onwards.
+	public abstract void clearFromInstruction(Instruction instruction);
 	
 	public abstract String getIdentifier();
 }
