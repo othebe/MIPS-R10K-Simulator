@@ -90,8 +90,6 @@ public class Graduator extends SimUnit {
 			if (instruction.instructionType == InstructionType.BRANCH) {
 				appContext.branchHandler.resolveBranch(instruction);
 			}
-			
-			System.out.println(instruction.seqNum);
 		}
 		
 		instructions_n.clear();

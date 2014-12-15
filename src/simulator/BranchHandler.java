@@ -54,14 +54,17 @@ public class BranchHandler extends SimUnit {
 		instructions_n.clear();
 	}
 	
+	// Determine if the branch stack has free space.
 	public boolean canAdd() {
 		return this.branchStack.size() < SIZE;
 	}
 	
+	// Rollback all instructions after a given instruction.
 	public void markForRollback(Instruction instruction) {
 		instructions_r.add(instruction);
 	}
 	
+	// Rollback a branch.
 	private void rollback(Instruction branchInstruction) {					
 		// Refetch instructions.
 		appContext.fetcher.clearFromInstruction(branchInstruction);
@@ -87,10 +90,12 @@ public class BranchHandler extends SimUnit {
 		clearFromInstruction(branchInstruction);
 	}
 	
+	// Allocate space on the branch stack.
 	public void addBranchFrame(Instruction branchInstruction) {
 		branchStack.push(branchInstruction);
 	}
 	
+	// Branch has been resolved and committed.
 	public void resolveBranch(Instruction instruction) {
 		branchStack.remove(instruction);
 	}

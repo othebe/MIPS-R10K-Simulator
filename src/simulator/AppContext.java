@@ -1,7 +1,6 @@
 package simulator;
 import instructionQueue.AddressQueue;
 import instructionQueue.FloatingQueue;
-import instructionQueue.InstructionQueue;
 import instructionQueue.IntegerQueue;
 import register.FreeList;
 import register.ActiveList;
@@ -9,7 +8,6 @@ import register.RegisterList;
 
 /**
  * Hold context for the simulator application.
- * @author Ozzy
  *
  */
 public class AppContext {
