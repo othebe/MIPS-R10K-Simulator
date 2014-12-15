@@ -51,27 +51,39 @@ public abstract class InstructionQueue extends SimUnit{
 		this.queuedInstructions.remove(instruction);
 	}
 	
-	public void clearMispredictedBranch(Instruction mispredicted) {
-//		Iterator<Instruction> iterator;
-//		
-//		iterator = instructions_r.iterator();
-//		while (iterator.hasNext()) {
-//			Instruction instruction = iterator.next();
-//			if (instruction.seqNum >= mispredicted.seqNum) {
-//				iterator.remove();
-//			}
-//		}
-//		
-//		iterator = instructions_n.iterator();
-//		while (iterator.hasNext()) {
-//			Instruction instruction = iterator.next();
-//			if (instruction.seqNum >= mispredicted.seqNum) {
-//				iterator.remove();
-//			}
-//		}
-//		
-//		for (int i = 0; i < executionUnits.length; i++) {
-//			executionUnits[i].clearMispredictedBranch(mispredicted);
-//		}
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
+		Iterator<Instruction> iterator;
+		
+		// Clear any instructions scheduled for to be issued.
+		iterator = instructions_n.iterator();
+		while (iterator.hasNext()) {
+			Instruction queuedInstruction = iterator.next();
+			if (queuedInstruction.seqNum >= instruction.seqNum) {
+				iterator.remove();
+			}
+		}
+		
+		// Clear any instructions scheduled for to be issued.
+		iterator = instructions_r.iterator();
+		while (iterator.hasNext()) {
+			Instruction queuedInstruction = iterator.next();
+			if (queuedInstruction.seqNum >= instruction.seqNum) {
+				iterator.remove();
+			}
+		}
+		
+		// Clear any newer instructions from queue.
+		iterator = queuedInstructions.iterator();
+		while (iterator.hasNext()) {
+			Instruction queuedInstruction = iterator.next();
+			if (queuedInstruction.seqNum >= instruction.seqNum) {
+				iterator.remove();
+			}
+		}
+		// Clear execution units.
+		for (int i = 0; i < executionUnits.length; i++) {
+			executionUnits[i].clearFromInstruction(instruction);
+		}
 	}
 }

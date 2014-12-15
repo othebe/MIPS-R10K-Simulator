@@ -5,7 +5,7 @@ import simulator.AppContext;
 
 public class AddressCalculationUnit extends ExecutionUnit {
 	public AddressCalculationUnit(AppContext appContext) {
-		super(appContext);
+		super(appContext, false);
 		
 		pipeline = new Instruction[1];
 	}

@@ -62,4 +62,19 @@ public class ActiveList {
 	public LinkedList<Instruction> getRunning() {
 		return this.running;
 	}
+	
+	public void clearFromInstruction(Instruction instruction) {
+		Iterator<Instruction> iterator = running.iterator();
+		while (iterator.hasNext()) {
+			Instruction runningInstruction = iterator.next();
+			
+			if (runningInstruction.seqNum >= instruction.seqNum) {
+				// Clear newer instructions from running list.
+				iterator.remove();
+				
+				// Clear mapping.
+				registerMap.remove(runningInstruction.rd);
+			}
+		}
+	}
 }

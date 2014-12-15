@@ -5,6 +5,8 @@
 
 package register;
 
+import instruction.Instruction;
+
 import java.util.LinkedList;
 
 import simulator.AppContext;
@@ -37,5 +39,11 @@ public class FreeList {
 	
 	public boolean hasFreeRegister() {
 		return this.registers.peek() != null;
+	}
+	
+	public void clearFromInstruction(Instruction instruction) {
+		if (instruction.renamed) {
+			addRegister(instruction.rd);
+		}
 	}
 }

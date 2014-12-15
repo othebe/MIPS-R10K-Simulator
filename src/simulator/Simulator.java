@@ -41,17 +41,16 @@ public class Simulator {
 			appContext.decoder.calc();
 			appContext.floatingQueue.calc();
 			appContext.integerQueue.calc();
-			checkRollback();
-			appContext.addressQueue.calc();
 			appContext.branchHandler.calc();
+			appContext.addressQueue.calc();
 			appContext.graduator.calc();
 			
 			appContext.fetcher.edge();
 			appContext.decoder.edge();
 			appContext.floatingQueue.edge();
 			appContext.integerQueue.edge();
-			appContext.addressQueue.edge();
 			appContext.branchHandler.edge();
+			appContext.addressQueue.edge();
 			appContext.graduator.edge();
 			
 			appContext.timeLogger.nextCycle();
@@ -60,18 +59,5 @@ public class Simulator {
 		}
 		
 		appContext.timeLogger.print();
-	}
-	
-	public void checkRollback() {
-		if (appContext.branchHandler.performRollback) {			
-			LinkedList<Instruction> running = appContext.activeList.getRunning();
-			Iterator<Instruction> iterator = running.iterator();
-			while (iterator.hasNext()) {
-				Instruction instruction = iterator.next();
-				//appContext.timeLogger.log(instruction, appContext.branchHandler);
-			}
-			
-			this.appContext = appContext.branchHandler.getRollback();
-		}
 	}
 }

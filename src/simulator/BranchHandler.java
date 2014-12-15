@@ -6,52 +6,115 @@ import java.util.LinkedList;
 import instruction.Instruction;
 
 public class BranchHandler extends SimUnit {
+	private static final int SIZE = 4;
+	
 	private LinkedList<Instruction> branchStack;
-	public boolean performRollback;
+	private Instruction rollbackInstruction;
 	
 	public BranchHandler(AppContext appContext) {
 		super(appContext);
 		
-		this.performRollback = false;
+		this.rollbackInstruction = null;
 		this.branchStack = new LinkedList<Instruction>();
 	}
 	
-	@Override
-	public void edge() {
-		super.edge();
-
-		instructions_n.clear();
-	}
-
 	@Override
 	public String getIdentifier() {
 		return "R";
 	}
 	
-	public static void rollback(AppContext appContext) {
+	@Override
+	public void calc() {
+		super.calc();
 		
-		
-		AppContext original = this.appContext;
-		
-		if (performRollback) {
-			ExecutionFrame executionFrame = branchStack.pop();
-			Instruction resetInstruction = executionFrame.getResetInstruction();
-			
-			original = executionFrame.getAppContext();
-			
-			// Reset branch bit and instruction pointer.
-			original.fetcher.resetFromInstruction(resetInstruction);
-			
-			// Clear queues of any newer instructions.
-			original.integerQueue.clearMispredictedBranch(resetInstruction);
-			original.floatingQueue.clearMispredictedBranch(resetInstruction);
-			original.addressQueue.clearMispredictedBranch(resetInstruction);
+		if (!instructions_r.isEmpty()) {
+			rollbackInstruction = instructions_r.remove(0);
 		}
-		
-		return original;
 	}
 	
-	public void addFrame(Instruction branchInstruction) {
+	@Override
+	public void edge() {
+		if (rollbackInstruction != null) {
+			// Mark instructions that rollback.
+			LinkedList<Instruction> running = appContext.activeList.getRunning();
+			Iterator<Instruction> iterator = running.iterator();
+			while (iterator.hasNext()) {
+				Instruction runningInstruction = iterator.next();
+				if (runningInstruction.seqNum >= rollbackInstruction.seqNum) {
+					instructions_n.add(runningInstruction);
+				}
+			}
+			
+			super.edge();
+			
+			rollback(rollbackInstruction);
+			rollbackInstruction = null;
+		}
+		
+		instructions_n.clear();
+	}
+	
+	public boolean canAdd() {
+		return this.branchStack.size() < SIZE;
+	}
+	
+	public void markForRollback(Instruction instruction) {
+		instructions_r.add(instruction);
+	}
+	
+	private void rollback(Instruction branchInstruction) {					
+		// Refetch instructions.
+		appContext.fetcher.clearFromInstruction(branchInstruction);
+		
+		// Clear decoded instructions.
+		appContext.decoder.clearFromInstruction(branchInstruction);
+		
+		// Clear active list.
+		appContext.activeList.clearFromInstruction(branchInstruction);
+		
+		// Clear free list.
+		appContext.freeList.clearFromInstruction(branchInstruction);
+		
+		// Clear instruction queues.
+		appContext.integerQueue.clearFromInstruction(branchInstruction);
+		appContext.floatingQueue.clearFromInstruction(branchInstruction);
+		appContext.addressQueue.clearFromInstruction(branchInstruction);
+		
+		// Abort graduating instructions.
+		appContext.graduator.clearFromInstruction(rollbackInstruction);
+		
+		// Update branch stack.
+		clearFromInstruction(branchInstruction);
+	}
+	
+	public void addBranchFrame(Instruction branchInstruction) {
 		branchStack.push(branchInstruction);
+	}
+	
+	public void resolveBranch(Instruction instruction) {
+		branchStack.remove(instruction);
+	}
+
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
+		Iterator<Instruction> iterator;
+		
+		// Clear any newer branches.
+		iterator = branchStack.iterator();
+		while (iterator.hasNext()) {
+			Instruction branchInstruction = iterator.next();
+			if (branchInstruction.seqNum >= instruction.seqNum) {
+				iterator.remove();
+			}
+		}
+		
+		iterator = instructions_r.iterator();
+		while (iterator.hasNext()) {
+			Instruction branchInstruction = iterator.next();
+			if (branchInstruction.seqNum >= instruction.seqNum) {
+				iterator.remove();
+			}
+		}
+		
 	}
 }

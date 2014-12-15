@@ -8,11 +8,14 @@ import simulator.SimUnit;
 
 public abstract class ExecutionUnit extends SimUnit {
 	private Instruction completedInstruction;
+	private boolean graduateOnCompletion;
 	
 	protected Instruction[] pipeline;
 	
-	public ExecutionUnit(AppContext appContext) {
+	public ExecutionUnit(AppContext appContext, boolean graduateOnCompletion) {
 		super(appContext);
+		
+		this.graduateOnCompletion = graduateOnCompletion;
 	}
 	
 	public boolean canIssue() {
@@ -49,14 +52,8 @@ public abstract class ExecutionUnit extends SimUnit {
 	public void edge() {
 		super.edge();
 		
-		// If a rollback is going to be performed, no instructions can move to the graduator.
-		if (appContext.branchHandler.performRollback) {
-			instructions_n.clear();
-			return;
-		}
-		
 		Instruction instruction = getCompletedInstruction();
-		if (instruction != null) {
+		if (instruction != null && graduateOnCompletion) {
 			// Destination register is no longer busy.
 			instruction.rd.setBusy(false);
 			
@@ -72,23 +69,39 @@ public abstract class ExecutionUnit extends SimUnit {
 		return "E";
 	}
 	
-	public void clearMispredictedBranch(Instruction mispredicted) {
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
 		Iterator<Instruction> iterator;
 		
-		iterator = instructions_r.iterator();
+		// Clear any instructions scheduled for to be issued.
+		iterator = instructions_n.iterator();
 		while (iterator.hasNext()) {
-			Instruction instruction = iterator.next();
-			if (instruction.seqNum >= mispredicted.seqNum) {
+			Instruction queuedInstruction = iterator.next();
+			if (queuedInstruction.seqNum >= instruction.seqNum) {
 				iterator.remove();
 			}
 		}
 		
-		iterator = instructions_n.iterator();
+		// Clear any instructions scheduled for to be issued.
+		iterator = instructions_r.iterator();
 		while (iterator.hasNext()) {
-			Instruction instruction = iterator.next();
-			if (instruction.seqNum >= mispredicted.seqNum) {
+			Instruction queuedInstruction = iterator.next();
+			if (queuedInstruction.seqNum >= instruction.seqNum) {
 				iterator.remove();
 			}
+		}
+		
+		// Clear any newer instructions from the pipeline.
+		for (int i = 0; i < pipeline.length; i++) {
+			Instruction pipelined = pipeline[i];
+			if (pipelined != null && pipelined.seqNum >= instruction.seqNum) {
+				pipeline[i] = null;
+			}
+		}
+		
+		// Ignore any completed instructions.
+		if (completedInstruction != null && completedInstruction.seqNum >= instruction.seqNum) {
+			completedInstruction = null;
 		}
 	}
 }

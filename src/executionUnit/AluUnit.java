@@ -7,7 +7,7 @@ public class AluUnit extends ExecutionUnit {
 	private boolean allowBypass;
 	
 	public AluUnit(AppContext appContext, int pipelines, boolean allowBypass) {
-		super(appContext);
+		super(appContext, true);
 		
 		pipeline = new Instruction[pipelines];
 		this.allowBypass = allowBypass;
@@ -28,11 +28,11 @@ public class AluUnit extends ExecutionUnit {
 		if (getCompletedInstruction() != null) {
 			Instruction completedInstruction = getCompletedInstruction();
 			if (completedInstruction.isMispredicted()) {
-				instructions_n.remove(completedInstruction);
+				//instructions_n.remove(completedInstruction);
 			}
 		}
 		
-		else if (allowBypass) {
+		if (allowBypass) {
 			Instruction instruction = pipeline[pipeline.length - 1];
 			if (instruction != null) {
 				instruction.rd.setBypass(true);

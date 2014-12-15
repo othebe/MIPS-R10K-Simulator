@@ -16,15 +16,20 @@ import register.ActiveList;
  *
  */
 public class Decoder extends SimUnit {
+	// This determines if we are waiting for a branch to get resolved.
+	private boolean canAddToBranchStack;
+	
 	public Decoder(AppContext appContext) {
 		super(appContext);
+		
+		this.canAddToBranchStack = true;
 	}
 	
 	
 	/**
 	 * Determine if instructions can be added to the queue.
 	 */
-	private boolean canAdd() {
+	private boolean canAdd(Instruction instruction) {
 		// Active list is not full.
 		boolean checkActiveList = appContext.activeList.canAdd();
 		
@@ -33,7 +38,13 @@ public class Decoder extends SimUnit {
 		boolean checkFloatingQueue = appContext.floatingQueue.canAdd();
 		boolean checkIntegerQueue = appContext.integerQueue.canAdd();
 		
-		return checkActiveList && checkAddressQueue && checkFloatingQueue && checkIntegerQueue;
+		// Check if branch stack is full.
+		boolean checkBranchStack = canAddToBranchStack;
+		if (instruction.instructionType == InstructionType.BRANCH) {
+			canAddToBranchStack = (checkBranchStack = appContext.branchHandler.canAdd());
+		}
+		
+		return checkActiveList && checkAddressQueue && checkFloatingQueue && checkIntegerQueue && checkBranchStack;
 	}
 	
 	
@@ -74,11 +85,14 @@ public class Decoder extends SimUnit {
 		while (iterator.hasNext()) {
 			Instruction instruction = iterator.next();
 			
+			boolean canAdd = canAdd(instruction);
 			if (instruction.instructionType == InstructionType.BRANCH) {
-				appContext.branchHandler.addFrame(instruction);
+				if (appContext.branchHandler.canAdd()) {
+					appContext.branchHandler.addBranchFrame(instruction);
+				}
 			}
 			
-			if (canAdd()) {
+			if (canAdd) {
 				// If there are no instructions, break the loop.
 				if (instruction == null) break;
 				
@@ -116,7 +130,12 @@ public class Decoder extends SimUnit {
 	
 	@Override
 	public void clearFromInstruction(Instruction instruction) {
-		
+		Iterator<Instruction> iterator = instructions_n.iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().seqNum >= instruction.seqNum) {
+				iterator.remove();
+			}
+		}
 	}
 	
 	// Rename an operand register if mapping exists.

@@ -8,7 +8,7 @@ import instruction.InstructionType;
 
 public class LoadStoreUnit extends ExecutionUnit {
 	public LoadStoreUnit(AppContext appContext) {
-		super(appContext);
+		super(appContext, true);
 
 		pipeline = new Instruction[1];
 	}

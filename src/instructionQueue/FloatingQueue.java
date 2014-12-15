@@ -86,20 +86,4 @@ public class FloatingQueue extends InstructionQueue {
 	public String getIdentifier() {
 		return "I";
 	}
-	
-	@Override
-	public SimUnit clone(AppContext appContext) {
-		FloatingQueue cloned = null;
-		
-		try {
-			cloned = (FloatingQueue) super.clone();
-			
-			// Rewrite AppContext for sim units.
-			cloned.appContext = appContext;
-			cloned.alu1 = (AluUnit) cloned.alu1.clone(appContext);
-			cloned.alu2 = (AluUnit) cloned.alu2.clone(appContext);
-		} catch (CloneNotSupportedException e) {}
-		
-		return cloned;
-	}
 }

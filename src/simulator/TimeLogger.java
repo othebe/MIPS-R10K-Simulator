@@ -16,14 +16,14 @@ public class TimeLogger {
 	
 	private int cycle;
 	private LinkedList<Instruction> instructions;
-	private HashMap<Instruction, ArrayList<String>> timeLine;
+	private HashMap<Instruction, ArrayList<SimUnit>> timeLine;
 	
 	public TimeLogger(AppContext appContext) {
 		this.appContext = appContext;
 		
 		this.cycle = 0;
 		this.instructions = new LinkedList<Instruction>();
-		this.timeLine = new HashMap<Instruction, ArrayList<String>>();
+		this.timeLine = new HashMap<Instruction, ArrayList<SimUnit>>();
 	}
 	
 	public void nextCycle() {
@@ -31,15 +31,15 @@ public class TimeLogger {
 	}
 	
 	public void log(Instruction instruction, SimUnit simUnit) {
-		ArrayList<String> history;
+		ArrayList<SimUnit> history;
 		
 		// Register instruction.
 		if (!timeLine.containsKey(instruction)) {
 			instructions.add(instruction);
-			history = new ArrayList<String>();
+			history = new ArrayList<SimUnit>();
 			for (int i = 1; i < cycle; i++) {
 				// Fill in previous cycles.
-				history.add("");
+				history.add(null);
 			}
 			timeLine.put(instruction, history);
 		}
@@ -48,23 +48,18 @@ public class TimeLogger {
 		
 		// Fill in stall cycles.
 		while (history.size() < cycle) {
-			history.add("");
+			history.add(null);
 		}
 		
-		// Log instruction. Don't log waiting instructions.
-//		if (!history.isEmpty() && !(simUnit instanceof ExecutionUnit)) {
-//			boolean waiting = false;
-//			for (int i = 0; i < history.size(); i++) {
-//				if (simUnit instanceof BranchHandler) waiting = false;
-//				String identifier = simUnit.getIdentifier();
-//				waiting = waiting || (history.get(i).compareTo(identifier) == 0);
-//			}
-//			if (!waiting) {
-//				history.add(simUnit.getIdentifier());
-//			}
-//		} else {
-			history.add(simUnit.getIdentifier());
-//		}
+		// Log a sim unit.
+		if (history.size() <= cycle) {
+			history.add(simUnit);
+		}
+		// Replace a sim unit.
+		else {
+			history.set(cycle, simUnit);
+		}
+		
 		timeLine.put(instruction, history);
 	}
 	
@@ -82,11 +77,24 @@ public class TimeLogger {
 			System.out.printf("%5d", instruction.seqNum);
 			
 			// Print sequential timeline.
-			String lastIdentifier = "";
-			ArrayList<String> history = timeLine.get(instruction);
+			ArrayList<SimUnit> history = timeLine.get(instruction);
+			HashMap<SimUnit, Boolean> waiting = new HashMap<SimUnit, Boolean>();
 			for (int i = 0; i < history.size(); i++) {
-				String identifier = history.get(i);
-				System.out.printf("%5s", history.get(i));
+				SimUnit simUnit = history.get(i);
+				String identifier = "";
+				
+				if (simUnit != null) {
+					if (simUnit instanceof BranchHandler) {
+						waiting.clear();
+						identifier = simUnit.getIdentifier();
+					} else if (simUnit instanceof ExecutionUnit){
+						identifier = simUnit.getIdentifier();
+					} else if (!waiting.containsKey(simUnit)) {
+						identifier = simUnit.getIdentifier();
+						waiting.put(simUnit, true);
+					}
+				}
+				System.out.printf("%5s", identifier);
 			}
 			System.out.println();
 		}

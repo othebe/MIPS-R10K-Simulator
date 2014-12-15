@@ -86,6 +86,11 @@ public class Graduator extends SimUnit {
 				appContext.freeList.addRegister(instruction.rd);
 			}
 			
+			// Remove from branch stack.
+			if (instruction.instructionType == InstructionType.BRANCH) {
+				appContext.branchHandler.resolveBranch(instruction);
+			}
+			
 			System.out.println(instruction.seqNum);
 		}
 		
@@ -95,5 +100,33 @@ public class Graduator extends SimUnit {
 	@Override
 	public String getIdentifier() {
 		return "C";
+	}
+
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
+		Iterator<Instruction> iterator;
+		
+		iterator = instructions_n.iterator();
+		while (iterator.hasNext()) {
+			Instruction graduating = iterator.next();
+			if (graduating.seqNum >= instruction.seqNum) {
+				if (graduating.seqNum > instruction.seqNum) {
+					this.gradSeqNum = instruction.seqNum;
+				}
+				this.gradSeqNum = instruction.seqNum;
+				iterator.remove();
+			}
+		}
+		
+		iterator = instructions_r.iterator();
+		while (iterator.hasNext()) {
+			Instruction graduating = iterator.next();
+			if (graduating.seqNum >= instruction.seqNum) {
+				if (graduating.seqNum > instruction.seqNum) {
+					this.gradSeqNum = instruction.seqNum;
+				}
+				iterator.remove();
+			}
+		}
 	}
 }

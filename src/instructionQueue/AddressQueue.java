@@ -115,6 +115,37 @@ public class AddressQueue extends InstructionQueue {
 		this.loadStoreUnit.edge();
 	}
 	
+	@Override
+	public void clearFromInstruction(Instruction instruction) {
+		super.clearFromInstruction(instruction);
+		
+		Iterator<Instruction> iterator;
+		
+		// Remove all prior entries from the indermination matrix.
+		iterator = inderminationList.iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().seqNum >= instruction.seqNum) iterator.remove();
+		}
+		
+		// Remove all prior entries from the dependency matrix.
+		iterator = dependencyList.iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().seqNum >= instruction.seqNum) iterator.remove();
+		}
+		
+		// Remove all prior entries from the address lookup matrix.
+		iterator = completedAddressCompute.keySet().iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().seqNum >= instruction.seqNum) iterator.remove();
+		}
+		
+		// Remove all prior entries from the memory lookup matrix.
+		iterator = completedMemoryAccess.keySet().iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().seqNum >= instruction.seqNum) iterator.remove();
+		}
+	}
+	
 	public void addIndeterminationDependency(Instruction instruction) {
 		this.inderminationList.add(instruction);
 	}
@@ -185,22 +216,5 @@ public class AddressQueue extends InstructionQueue {
 				}
 			}
 		}
-	}
-	
-	@Override
-	public SimUnit clone(AppContext appContext) {
-		AddressQueue cloned = null;
-		
-		try {
-			cloned = (AddressQueue) super.clone();
-			
-			// Rewrite AppContext for sim units.
-			cloned.appContext = appContext;
-			cloned.addressCalcUnit = (AddressCalculationUnit) cloned.addressCalcUnit.clone(appContext);
-			cloned.loadStoreUnit = (LoadStoreUnit) cloned.loadStoreUnit.clone(appContext);
-		} catch (CloneNotSupportedException e) {}
-		
-		return cloned;
-	}
-	
+	}	
 }

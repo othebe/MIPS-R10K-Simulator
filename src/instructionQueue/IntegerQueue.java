@@ -41,20 +41,18 @@ public class IntegerQueue extends InstructionQueue {
 		
 		this.alu1.calc();		
 		this.alu2.calc();
-		
-		// Check for branch resolution.
-		if (this.alu1.getCompletedInstruction() != null) {
-			Instruction completedInstruction = this.alu1.getCompletedInstruction();
-			if (completedInstruction.isMispredicted()) {
-				appContext.branchHandler.performRollback = true;
-				instructions_n.remove(completedInstruction);
-			}
-		}
 	}
 	
 	@Override
 	public void edge() {
 		super.edge();
+		
+		if (this.alu1.getCompletedInstruction() != null) {
+			Instruction completedInstruction = this.alu1.getCompletedInstruction();
+			if (completedInstruction.isMispredicted()) {
+				appContext.branchHandler.markForRollback(completedInstruction);
+			}
+		}
 		
 		// Issue to ALU-1.
 		if (alu1.canIssue() && !instructions_n.isEmpty()) {
@@ -116,21 +114,5 @@ public class IntegerQueue extends InstructionQueue {
 		
 		this.alu1.edge();
 		this.alu2.edge();
-	}
-	
-	@Override
-	public SimUnit clone(AppContext appContext) {
-		IntegerQueue cloned = null;
-		
-		try {
-			cloned = (IntegerQueue) super.clone();
-			
-			// Rewrite AppContext for sim units.
-			cloned.appContext = appContext;
-			cloned.alu1 = (AluUnit) cloned.alu1.clone(appContext);
-			cloned.alu2 = (AluUnit) cloned.alu2.clone(appContext);
-		} catch (CloneNotSupportedException e) {}
-		
-		return cloned;
 	}
 }
