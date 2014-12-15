@@ -29,4 +29,8 @@ public class Instruction {
 		
 		return rsAvailable && rtAvailable;
 	}
+	
+	public boolean isMispredicted() {
+		return this.instructionType == InstructionType.BRANCH && this.extra.compareTo("1") == 0;
+	}
 }

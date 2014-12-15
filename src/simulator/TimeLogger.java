@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import executionUnit.AluUnit;
 import executionUnit.ExecutionUnit;
 
 public class TimeLogger {
@@ -50,19 +51,20 @@ public class TimeLogger {
 			history.add("");
 		}
 		
-		// Log instruction.
-		if (!history.isEmpty() && !(simUnit instanceof ExecutionUnit)) {
-			boolean alreadyPrinted = false;
-			for (int i = 0; i < history.size(); i++) {
-				String identifier = simUnit.getIdentifier();
-				alreadyPrinted = alreadyPrinted || (history.get(i).compareTo(identifier) == 0);
-			}
-			if (!alreadyPrinted) {
-				history.add(simUnit.getIdentifier());
-			}
-		} else {
+		// Log instruction. Don't log waiting instructions.
+//		if (!history.isEmpty() && !(simUnit instanceof ExecutionUnit)) {
+//			boolean waiting = false;
+//			for (int i = 0; i < history.size(); i++) {
+//				if (simUnit instanceof BranchHandler) waiting = false;
+//				String identifier = simUnit.getIdentifier();
+//				waiting = waiting || (history.get(i).compareTo(identifier) == 0);
+//			}
+//			if (!waiting) {
+//				history.add(simUnit.getIdentifier());
+//			}
+//		} else {
 			history.add(simUnit.getIdentifier());
-		}
+//		}
 		timeLine.put(instruction, history);
 	}
 	
@@ -80,8 +82,10 @@ public class TimeLogger {
 			System.out.printf("%5d", instruction.seqNum);
 			
 			// Print sequential timeline.
+			String lastIdentifier = "";
 			ArrayList<String> history = timeLine.get(instruction);
 			for (int i = 0; i < history.size(); i++) {
+				String identifier = history.get(i);
 				System.out.printf("%5s", history.get(i));
 			}
 			System.out.println();

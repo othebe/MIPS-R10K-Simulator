@@ -6,7 +6,9 @@ import instruction.InstructionType;
 import java.util.Iterator;
 
 import executionUnit.AluUnit;
+import executionUnit.ExecutionUnit;
 import simulator.AppContext;
+import simulator.SimUnit;
 
 public class FloatingQueue extends InstructionQueue {
 	private AluUnit alu1;
@@ -17,6 +19,10 @@ public class FloatingQueue extends InstructionQueue {
 		
 		this.alu1 = new AluUnit(appContext, /** pipelines */ 3, /** allowBypass */ true);
 		this.alu2 = new AluUnit(appContext, /** pipelines */ 3, /** allowBypass */ true);
+		
+		this.executionUnits = new ExecutionUnit[2];
+		this.executionUnits[0] = this.alu1;
+		this.executionUnits[1] = this.alu2;
 	}
 	
 	@Override
@@ -79,5 +85,21 @@ public class FloatingQueue extends InstructionQueue {
 	@Override
 	public String getIdentifier() {
 		return "I";
+	}
+	
+	@Override
+	public SimUnit clone(AppContext appContext) {
+		FloatingQueue cloned = null;
+		
+		try {
+			cloned = (FloatingQueue) super.clone();
+			
+			// Rewrite AppContext for sim units.
+			cloned.appContext = appContext;
+			cloned.alu1 = (AluUnit) cloned.alu1.clone(appContext);
+			cloned.alu2 = (AluUnit) cloned.alu2.clone(appContext);
+		} catch (CloneNotSupportedException e) {}
+		
+		return cloned;
 	}
 }

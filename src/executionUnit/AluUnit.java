@@ -24,7 +24,15 @@ public class AluUnit extends ExecutionUnit {
 		
 		execute();
 		
-		if (allowBypass) {
+		// Check for branch mispredictions.
+		if (getCompletedInstruction() != null) {
+			Instruction completedInstruction = getCompletedInstruction();
+			if (completedInstruction.isMispredicted()) {
+				instructions_n.remove(completedInstruction);
+			}
+		}
+		
+		else if (allowBypass) {
 			Instruction instruction = pipeline[pipeline.length - 1];
 			if (instruction != null) {
 				instruction.rd.setBypass(true);
@@ -32,21 +40,5 @@ public class AluUnit extends ExecutionUnit {
 		}
 		
 		instructions_r.clear();
-	}
-	
-	@Override
-	public void edge() {
-		super.edge();
-		
-		Instruction instruction = getCompletedInstruction();
-		if (instruction != null) {
-			// Destination register is no longer busy.
-			instruction.rd.setBusy(false);
-			
-			// Mark instruction for graduation.
-			appContext.graduator.add(instruction);
-			
-			instructions_n.remove(instruction);
-		}
 	}
 }

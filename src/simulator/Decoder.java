@@ -74,6 +74,10 @@ public class Decoder extends SimUnit {
 		while (iterator.hasNext()) {
 			Instruction instruction = iterator.next();
 			
+			if (instruction.instructionType == InstructionType.BRANCH) {
+				appContext.branchHandler.addFrame(instruction);
+			}
+			
 			if (canAdd()) {
 				// If there are no instructions, break the loop.
 				if (instruction == null) break;

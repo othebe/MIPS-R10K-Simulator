@@ -24,20 +24,4 @@ public class LoadStoreUnit extends ExecutionUnit {
 		
 		execute();
 	}
-	
-	@Override
-	public void edge() {
-		super.edge();
-		
-		Instruction instruction = getCompletedInstruction();
-		if (instruction != null) {
-			// Destination register is no longer busy.
-			instruction.rd.setBusy(false);
-			
-			// Mark instruction for graduation.
-			appContext.graduator.add(instruction);
-			
-			instructions_n.remove(instruction);
-		}
-	}
 }

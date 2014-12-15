@@ -36,6 +36,25 @@ public class Fetcher extends SimUnit {
 		}
 	}
 	
+	public void resetFromInstruction(Instruction instruction) {
+		int index = parsedInstructions.indexOf(instruction);
+		if (instruction.isMispredicted()) {
+			instruction.extra = "0";
+			parsedInstructions.set(index, instruction);
+//			Instruction altered = new Instruction(
+//					instruction.seqNum,
+//					instruction.instructionType,
+//					instruction.rs,
+//					instruction.rt,
+//					instruction.rd,
+//					"0"
+//			);
+//			parsedInstructions.set(index,  altered);
+		}
+		
+		instructionNdx = index;
+	}
+	
 	public boolean hasNext() {
 		return instructionNdx < this.parsedInstructions.size();
 	}
@@ -62,7 +81,7 @@ public class Fetcher extends SimUnit {
 	}
 	
 	/**
-	 * Retrieve 4 instructions and send to decoder.
+	 * Fetch instructions into instruction register.
 	 */
 	@Override
 	public void edge() {

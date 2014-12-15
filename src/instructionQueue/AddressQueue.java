@@ -9,9 +9,11 @@ import java.util.Iterator;
 
 import executionUnit.AddressCalculationUnit;
 import executionUnit.AluUnit;
+import executionUnit.ExecutionUnit;
 import executionUnit.LoadStoreUnit;
 import register.Register;
 import simulator.AppContext;
+import simulator.SimUnit;
 
 public class AddressQueue extends InstructionQueue {
 	private HashMap<Instruction, Boolean> completedAddressCompute;
@@ -34,13 +36,17 @@ public class AddressQueue extends InstructionQueue {
 		
 		this.addressCalcUnit = new AddressCalculationUnit(appContext);
 		this.loadStoreUnit = new LoadStoreUnit(appContext);
+		
+		this.executionUnits = new ExecutionUnit[2];
+		this.executionUnits[0] = this.addressCalcUnit;
+		this.executionUnits[1] = this.loadStoreUnit;
 	}
 	
 	@Override
 	public boolean canAdd() {
 		return this.queuedInstructions.size() < SIZE;
 	}
-	
+
 	@Override
 	public void calc() {
 		super.calc();
@@ -179,6 +185,22 @@ public class AddressQueue extends InstructionQueue {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public SimUnit clone(AppContext appContext) {
+		AddressQueue cloned = null;
+		
+		try {
+			cloned = (AddressQueue) super.clone();
+			
+			// Rewrite AppContext for sim units.
+			cloned.appContext = appContext;
+			cloned.addressCalcUnit = (AddressCalculationUnit) cloned.addressCalcUnit.clone(appContext);
+			cloned.loadStoreUnit = (LoadStoreUnit) cloned.loadStoreUnit.clone(appContext);
+		} catch (CloneNotSupportedException e) {}
+		
+		return cloned;
 	}
 	
 }

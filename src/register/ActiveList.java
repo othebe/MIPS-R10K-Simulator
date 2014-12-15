@@ -58,4 +58,8 @@ public class ActiveList {
 	public Register getOriginal(Register physical) {
 		return registerMap.get(physical);
 	}
+	
+	public LinkedList<Instruction> getRunning() {
+		return this.running;
+	}
 }

@@ -5,8 +5,12 @@ import instruction.InstructionType;
 
 import java.util.Iterator;
 
+import executionUnit.AddressCalculationUnit;
 import executionUnit.AluUnit;
+import executionUnit.ExecutionUnit;
+import executionUnit.LoadStoreUnit;
 import simulator.AppContext;
+import simulator.SimUnit;
 
 public class IntegerQueue extends InstructionQueue {
 	private AluUnit alu1;
@@ -17,6 +21,10 @@ public class IntegerQueue extends InstructionQueue {
 		
 		this.alu1 = new AluUnit(appContext, /** pipelines */ 1, /** allowBypass */ false);
 		this.alu2 = new AluUnit(appContext, /** pipelines */ 1, /** allowBypass */ false);
+		
+		this.executionUnits = new ExecutionUnit[2];
+		this.executionUnits[0] = this.alu1;
+		this.executionUnits[1] = this.alu2;
 	}
 	
 	@Override
@@ -31,8 +39,17 @@ public class IntegerQueue extends InstructionQueue {
 			iterator.remove();
 		}
 		
-		this.alu1.calc();
+		this.alu1.calc();		
 		this.alu2.calc();
+		
+		// Check for branch resolution.
+		if (this.alu1.getCompletedInstruction() != null) {
+			Instruction completedInstruction = this.alu1.getCompletedInstruction();
+			if (completedInstruction.isMispredicted()) {
+				appContext.branchHandler.performRollback = true;
+				instructions_n.remove(completedInstruction);
+			}
+		}
 	}
 	
 	@Override
@@ -46,7 +63,7 @@ public class IntegerQueue extends InstructionQueue {
 			Iterator<Instruction> iterator = instructions_n.iterator();
 			while (iterator.hasNext()) {
 				Instruction instruction = iterator.next();
-				if (instruction.rs.isBusy() || instruction.rt.isBusy()) continue;
+				if (!instruction.operandsAvailable()) continue;
 				
 				if (issuable == null) {
 					issuable = instruction;
@@ -59,6 +76,9 @@ public class IntegerQueue extends InstructionQueue {
 			}
 			
 			if (issuable != null) {
+				if (issuable.instructionType == InstructionType.BRANCH) {
+					//appContext.branchHandler.addFrame(issuable);
+				}
 				alu1.issue(issuable);
 				instructions_n.remove(issuable);
 				dequeue(issuable);
@@ -72,8 +92,9 @@ public class IntegerQueue extends InstructionQueue {
 			Iterator<Instruction> iterator = instructions_n.iterator();
 			while (iterator.hasNext()) {
 				Instruction instruction = iterator.next();
-				if (instruction.rs.isBusy() || instruction.rt.isBusy()) continue;
+				if (!instruction.operandsAvailable()) continue;
 				
+				// Branches not allowed on this ALU.
 				if (instruction.instructionType == InstructionType.BRANCH) continue;
 				
 				if (issuable == null) {
@@ -95,5 +116,21 @@ public class IntegerQueue extends InstructionQueue {
 		
 		this.alu1.edge();
 		this.alu2.edge();
+	}
+	
+	@Override
+	public SimUnit clone(AppContext appContext) {
+		IntegerQueue cloned = null;
+		
+		try {
+			cloned = (IntegerQueue) super.clone();
+			
+			// Rewrite AppContext for sim units.
+			cloned.appContext = appContext;
+			cloned.alu1 = (AluUnit) cloned.alu1.clone(appContext);
+			cloned.alu2 = (AluUnit) cloned.alu2.clone(appContext);
+		} catch (CloneNotSupportedException e) {}
+		
+		return cloned;
 	}
 }
