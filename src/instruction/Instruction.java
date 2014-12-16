@@ -31,6 +31,6 @@ public class Instruction {
 	}
 	
 	public boolean isMispredicted() {
-		return this.instructionType == InstructionType.BRANCH && this.extra.compareTo("1") == 0;
+		return this.instructionType.compareTo(InstructionType.BRANCH) == 0 && this.extra.compareTo("1") == 0;
 	}
 }

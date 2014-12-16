@@ -68,12 +68,12 @@ public class Graduator extends SimUnit {
 		for (int i = 0; i < instructions_n.size(); i++) {
 			Instruction instruction = instructions_n.get(i);
 			
-			if (instruction.instructionType == InstructionType.LOAD || instruction.instructionType == InstructionType.STORE) {
+			if (instruction.instructionType.compareTo(InstructionType.LOAD) == 0 || instruction.instructionType.compareTo(InstructionType.STORE) == 0) {
 				// If dealing with load or stores, remove from address queue.
 				appContext.addressQueue.dequeue(instruction);
 				
 				// If graduating a store, remove from dependency matrix.
-				if (instruction.instructionType == InstructionType.STORE) {
+				if (instruction.instructionType.compareTo(InstructionType.STORE) == 0) {
 					appContext.addressQueue.removeDependency(instruction);
 				}
 			}
@@ -87,7 +87,7 @@ public class Graduator extends SimUnit {
 			}
 			
 			// Remove from branch stack.
-			if (instruction.instructionType == InstructionType.BRANCH) {
+			if (instruction.instructionType.compareTo(InstructionType.BRANCH) == 0) {
 				appContext.branchHandler.resolveBranch(instruction);
 			}
 		}

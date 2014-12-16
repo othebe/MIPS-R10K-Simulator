@@ -99,7 +99,7 @@ public class IntegerQueue extends InstructionQueue {
 					issuable = instruction;
 				}
 				
-				if (instruction.instructionType != InstructionType.BRANCH) {
+				if (instruction.instructionType.compareTo(InstructionType.BRANCH) != 0) {
 					issuable = instruction;
 					break;
 				}

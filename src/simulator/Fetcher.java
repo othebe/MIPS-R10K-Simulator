@@ -145,7 +145,7 @@ public class Fetcher extends SimUnit {
 			if (tokens.length > 4) extra = tokens[4];
 			
 			Instruction instruction;
-			if (instructionType == InstructionType.LOAD) {
+			if (instructionType.compareTo(InstructionType.LOAD) == 0) {
 				instruction = new Instruction(seqNum, instructionType, rs, rd, rt, extra);
 			}
 			else {

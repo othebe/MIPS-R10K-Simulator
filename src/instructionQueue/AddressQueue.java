@@ -68,7 +68,7 @@ public class AddressQueue extends InstructionQueue {
 
 				addIndeterminationDependency(instruction);
 
-				if(instruction.instructionType == InstructionType.STORE) {
+				if(instruction.instructionType.compareTo(InstructionType.STORE) == 0) {
 					addDependency(instruction);
 				}
 			}
@@ -171,13 +171,17 @@ public class AddressQueue extends InstructionQueue {
 	}
 	
 	public boolean checkDependency(Instruction instruction) {
-		if (instruction.instructionType != InstructionType.LOAD) {
+		if (instruction.instructionType.compareTo(InstructionType.LOAD) != 0) {
 			return true;
 		}
 		
 		Iterator<Instruction> iterator = dependencyList.iterator();
 		while (iterator.hasNext()) {
 			Instruction queued = iterator.next();
+			
+			// No need to check dependencies for previous instructions.
+			if (queued.seqNum >= instruction.seqNum) continue;
+			
 			if (instruction.rs == queued.rs || instruction.rt == queued.rt) {
 				return false;
 			}

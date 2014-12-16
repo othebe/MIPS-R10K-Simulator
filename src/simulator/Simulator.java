@@ -36,6 +36,8 @@ public class Simulator {
 		
 		// Run simulator.
 		while (appContext.graduator.getLastGraduated() < appContext.fetcher.getNumParsedInstructions()) {
+			System.out.printf("Cycle %d\n", cycles);
+			
 			appContext.fetcher.calc();
 			appContext.decoder.calc();
 			appContext.floatingQueue.calc();

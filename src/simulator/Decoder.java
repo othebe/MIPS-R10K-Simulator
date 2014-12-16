@@ -40,7 +40,7 @@ public class Decoder extends SimUnit {
 		
 		// Check if branch stack is full.
 		boolean checkBranchStack = canAddToBranchStack;
-		if (instruction.instructionType == InstructionType.BRANCH) {
+		if (instruction.instructionType.compareTo(InstructionType.BRANCH) == 0) {
 			canAddToBranchStack = (checkBranchStack = appContext.branchHandler.canAdd());
 		}
 		
@@ -86,7 +86,7 @@ public class Decoder extends SimUnit {
 			Instruction instruction = iterator.next();
 			
 			boolean canAdd = canAdd(instruction);
-			if (instruction.instructionType == InstructionType.BRANCH) {
+			if (instruction.instructionType.compareTo(InstructionType.BRANCH) == 0) {
 				if (appContext.branchHandler.canAdd()) {
 					appContext.branchHandler.addBranchFrame(instruction);
 				}
