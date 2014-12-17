@@ -1,6 +1,7 @@
 package simulator;
 
 import instruction.Instruction;
+import instructionQueue.InstructionQueue;
 
 import java.net.IDN;
 import java.util.ArrayList;
@@ -97,6 +98,50 @@ public class TimeLogger {
 				System.out.printf("%5s", identifier);
 			}
 			System.out.println();
+		}
+	}
+	
+	public void printStatistics() {
+		int[] fetches = new int[cycle];
+		int[] decodes = new int[cycle];
+		int[] issues = new int[cycle];
+		int[] rollbacks = new int[cycle];
+		int[] executions = new int[cycle];
+		int[] graduations = new int[cycle];
+		
+		Iterator<Instruction> iterator = instructions.iterator();
+		while (iterator.hasNext()) {
+			Instruction instruction = iterator.next();
+			ArrayList<SimUnit> history = timeLine.get(instruction);
+			HashMap<SimUnit, Boolean> waiting = new HashMap<SimUnit, Boolean>();
+			for (int i = 0; i < history.size(); i++) {
+				SimUnit simUnit = history.get(i);
+				
+				if (simUnit != null) {
+					if (simUnit instanceof BranchHandler) {
+						waiting.clear();
+						rollbacks[i]++;
+					} else if (simUnit instanceof ExecutionUnit){
+						executions[i]++;
+					} else if (!waiting.containsKey(simUnit)) {
+						if (simUnit instanceof Fetcher) {
+							fetches[i]++;
+						} else if (simUnit instanceof Decoder) {
+							decodes[i]++;
+						} else if (simUnit instanceof InstructionQueue) {
+							issues[i]++;
+						} else if (simUnit instanceof Graduator) {
+							graduations[i]++;
+						}
+						waiting.put(simUnit, true);
+					}
+				}
+			}	
+		}
+		
+		System.out.printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "Cycle", "Fetches", "Issues", "Decodes", "Executions", "Rollbacks", "Graduations");
+		for (int i = 0; i < cycle; i++) {
+			System.out.printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n", i + 1, fetches[i], decodes[i], issues[i], executions[i], rollbacks[i], graduations[i]);
 		}
 	}
 }
