@@ -12,6 +12,7 @@ public class Instruction {
 	public Register rd;
 	public String extra;
 	public boolean renamed;
+	public boolean flipped;
 	
 	public Instruction(int seqNum, InstructionType instructionType, Register rs, Register rt, Register rd, String extra) {
 		this.seqNum = seqNum;
@@ -21,6 +22,7 @@ public class Instruction {
 		this.rd = rd;
 		this.extra = extra;
 		this.renamed = false;
+		this.flipped = false;
 	}
 	
 	public boolean operandsAvailable() {
@@ -32,5 +34,12 @@ public class Instruction {
 	
 	public boolean isMispredicted() {
 		return this.instructionType.compareTo(InstructionType.BRANCH) == 0 && this.extra.compareTo("1") == 0;
+	}
+	
+	public void flip() {
+		if (this.instructionType.compareTo(InstructionType.BRANCH) == 0) {
+			this.extra = ((Integer.parseInt(this.extra) + 1) % 2) + "";
+			this.flipped = !this.flipped;
+		}
 	}
 }

@@ -155,8 +155,8 @@ public class AddressQueue extends InstructionQueue {
 	}
 	
 	public boolean checkIndeterminationDependency(Instruction instruction) {
-		// Loads are only allowed if there are no prior loads waiting.
-		return inderminationList.indexOf(instruction) == 0;
+		// Allow address to be calculated out of order.
+		return true;
 	}
 	
 	public void addDependency(Instruction instruction) {
@@ -170,9 +170,13 @@ public class AddressQueue extends InstructionQueue {
 		assignInstructionToExecutionUnit();
 	}
 	
+	/**
+	 * @param instruction
+	 * @return
+	 */
 	public boolean checkDependency(Instruction instruction) {
-		if (instruction.instructionType.compareTo(InstructionType.LOAD) != 0) {
-			return true;
+		if (instruction.instructionType.compareTo(InstructionType.STORE) == 0) {
+			return dependencyList.indexOf(instruction) == 0;
 		}
 		
 		Iterator<Instruction> iterator = dependencyList.iterator();
@@ -182,7 +186,7 @@ public class AddressQueue extends InstructionQueue {
 			// No need to check dependencies for previous instructions.
 			if (queued.seqNum >= instruction.seqNum) continue;
 			
-			if (instruction.rs == queued.rs || instruction.rt == queued.rt) {
+			if (instruction.extra.compareTo(queued.extra) == 0) {
 				return false;
 			}
 		}

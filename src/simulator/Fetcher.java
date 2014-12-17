@@ -88,7 +88,7 @@ public class Fetcher extends SimUnit {
 		// Reset instruction pointer.
 		int index = parsedInstructions.indexOf(instruction);
 		if (instruction.isMispredicted()) {
-			instruction.extra = "0";
+			instruction.flip();
 			parsedInstructions.set(index, instruction);
 		}
 		

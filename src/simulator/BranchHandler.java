@@ -108,18 +108,24 @@ public class BranchHandler extends SimUnit {
 		iterator = branchStack.iterator();
 		while (iterator.hasNext()) {
 			Instruction branchInstruction = iterator.next();
-			if (branchInstruction.seqNum >= instruction.seqNum) {
+			if (branchInstruction.seqNum > instruction.seqNum) {
+				if (branchInstruction.flipped) {
+					branchInstruction.flip();
+				}
 				iterator.remove();
 			}
 		}
+		branchStack.remove(instruction);
 		
 		iterator = instructions_r.iterator();
 		while (iterator.hasNext()) {
 			Instruction branchInstruction = iterator.next();
-			if (branchInstruction.seqNum >= instruction.seqNum) {
+			if (branchInstruction.seqNum > instruction.seqNum) {
+				if (branchInstruction.flipped) {
+					branchInstruction.flip();
+				}
 				iterator.remove();
 			}
 		}
-		
 	}
 }
