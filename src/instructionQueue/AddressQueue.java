@@ -68,9 +68,9 @@ public class AddressQueue extends InstructionQueue {
 
 				addIndeterminationDependency(instruction);
 
-				if(instruction.instructionType.compareTo(InstructionType.STORE) == 0) {
+				//if(instruction.instructionType.compareTo(InstructionType.STORE) == 0) {
 					addDependency(instruction);
-				}
+				//}
 			}
 		}
 		
@@ -90,6 +90,10 @@ public class AddressQueue extends InstructionQueue {
 			
 			// Update dependency matrix.
 			appContext.addressQueue.removeInderminationDependency(completedInstruction);
+			
+			if (completedInstruction.instructionType.compareTo(InstructionType.LOAD) == 0) {
+				this.removeDependency(completedInstruction);
+			}
 		}
 		
 		this.instructions_r.clear();
